@@ -62,19 +62,28 @@ function apiListTasks() {
         deleteButton.innerText = 'Delete';
         headerRightDiv.appendChild(deleteButton);
 
+        deleteButton.addEventListener("click", function (){
+            apiDeleteTask(taskId).then( function (response){
+                section.parentElement.removeChild(section);
+                }
+            )
+        })
+
+
         const ul=document.createElement("ul");
         ul.className="list-group list-group-flush";
         section.appendChild(ul);
 
-        apiListOperationsForTask(taskId).then(
-            function (response){
-                response.data.forEach(
-                    function (operation){
-                        renderOperation(ul, operation.id, status, operation.description, operation.timeSpent)
-                    }
-                )
-            }
-        )
+        // apiListOperationsForTask(taskId).then(
+        //
+        //     // function (response){
+        //     //     response.data.forEach(
+        //     //         function (operation){
+        //     //             renderOperation(ul, operation.id, status, operation.description, operation.timeSpent)
+        //     //         }
+        //     //     )
+        //     // }
+        // )
 
 
         const divBody=document.createElement("div");
@@ -195,5 +204,23 @@ document.querySelector("form").addEventListener("submit", function (ev){
 
 })
 
+    function apiDeleteTask(taskId){
+        return fetch(
+            apihost + '/api/tasks/' + taskId,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': apikey,
+                },
+            }
+        ).then(
+            function(resp) {
+                if(!resp.ok) {
+                    alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+                }
+                return resp.json();
+            }
+        )
+    }
 
 })
