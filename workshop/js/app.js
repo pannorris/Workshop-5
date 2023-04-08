@@ -100,7 +100,6 @@ function apiListTasks() {
         divInputGroup.appendChild(buttonInput);
 
 
-
     }
 
     function apiListOperationsForTask(taskId) {
@@ -118,8 +117,6 @@ function apiListTasks() {
             }
         );
     }
-
-
 
 
     function renderOperation(operationsList, status, operationId, operationDescription, timeSpent) {
@@ -161,43 +158,42 @@ function apiListTasks() {
         // ...
     }
 
-
-
     apiListTasks().then(function (response){
         response.data.forEach(function (task){
             renderTask(task.id, task.title, task.description, task.status);
-
         })
     })
 
+function apiCreateTask(title, description) {
+    return fetch(
+        apihost + '/api/tasks',
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': apikey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: title, description: description, status: 'open' })
+        }
+    ).then(
+        function(resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
 
+document.querySelector("form").addEventListener("submit", function (ev){
+    ev.preventDefault();
+    const taskTitle=ev.currentTarget.elements.title.value;
+    const taskDescription=ev.currentTarget.elements.description.value;
+    apiCreateTask(taskTitle,taskDescription).then(function (response){
+        renderTask(response.data.id, response.data.title, response.data.description, response.data.status);
+    })
 
-// function apiCreateTask(title, description) {
-//     return fetch(
-//         apihost + '/api/tasks',
-//         {
-//             method: 'POST',
-//             headers: {
-//                 'Authorization': apikey,
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify({ title: title, description: description, status: 'open' })
-//         }
-//     ).then(
-//         function(resp) {
-//             if(!resp.ok) {
-//                 alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
-//             }
-//             return resp.json();
-//         }
-//     )
-// }
-//
-// // apiCreateTask(`zadanie`, `opis`).then(
-// //     function (response){
-// //         console.log(response);
-// //     }
-// // );
+})
 
 
 })
