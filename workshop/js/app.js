@@ -187,6 +187,12 @@ function apiListTasks() {
             })
         })
 
+        buttonDel.addEventListener("click", function (){
+            apiDeleteOperation(operationId).then(function (operation){
+                li.remove();
+            })
+        })
+
     }
 
     apiListTasks().then(function (response){
@@ -288,6 +294,23 @@ document.querySelector("form").addEventListener("submit", function (ev){
         )
     }
 
-
+    function apiDeleteOperation(operationId){
+        return fetch(
+            apihost + '/api/operations/' + operationId,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': apikey,
+                }
+            }
+        ).then(
+            function(resp) {
+                if(!resp.ok) {
+                    alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+                }
+                return resp.json();
+            }
+        )
+    }
 
 })
