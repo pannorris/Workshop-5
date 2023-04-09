@@ -55,6 +55,17 @@ function apiListTasks() {
             finishButton.className = 'btn btn-dark btn-sm js-task-open-only';
             finishButton.innerText = 'Finish';
             headerRightDiv.appendChild(finishButton);
+
+            finishButton.addEventListener("click", function (ev){
+                apiUpdateTask(taskId,title,description,status).then(function (operation){
+                    console.log("test");
+                    finishButton.remove();
+                    section.querySelectorAll(".js-task-open-only").forEach(function (fx){
+                        fx.remove();
+                    })
+                })
+            })
+
         }
 
         const deleteButton = document.createElement('button');
@@ -68,6 +79,8 @@ function apiListTasks() {
                 }
             )
         })
+
+
 
 
         const ul=document.createElement("ul");
@@ -85,39 +98,42 @@ function apiListTasks() {
 
 
         const divBody=document.createElement("div");
-        divBody.className="card-body";
-        section.appendChild(divBody);
-        const form=document.createElement("form");
-        divBody.appendChild(form);
-        const divInput=document.createElement("div");
-        divInput.className="input-group";
-        form.appendChild(divInput);
-        const input2=document.createElement("input");
-        input2.type="text";
-        input2.placeholder="Operation description";
-        input2.className="form-control";
-        input2.minLength="5";
-        divInput.appendChild(input2);
-        const divInputGroup=document.createElement("div");
-        divInputGroup.className="input-group-append";
-        divInput.appendChild(divInputGroup);
-        const buttonInput=document.createElement("button");
-        buttonInput.className="btn btn-info";
-        buttonInput.innerText="Add";
-        divInputGroup.appendChild(buttonInput);
+        divBody.className="card-body js-task-open-only";
 
-        buttonInput.addEventListener("click", function (ev){
-            if (input2.value.length < 6) {
-                alert("Długość zadania musi być większa niż 5 literek")
-            } else {
-                apiCreateOperationForTask(taskId, input2.value).then(function (response) {
-                    renderOperation(ul, status, response.data.id, response.data.description, response.data.timeSpent);
-                })
-            }
-            input2.value=null;
-            ev.preventDefault();
+        if(status===`open`) {
+            section.appendChild(divBody);
+            const form = document.createElement("form");
+            divBody.appendChild(form);
+            const divInput = document.createElement("div");
+            divInput.className = "input-group";
+            form.appendChild(divInput);
+            const input2 = document.createElement("input");
+            input2.type = "text";
+            input2.placeholder = "Operation description";
+            input2.className = "form-control";
+            input2.minLength = "5";
+            divInput.appendChild(input2);
+            const divInputGroup = document.createElement("div");
+            divInputGroup.className = "input-group-append";
+            divInput.appendChild(divInputGroup);
+            const buttonInput = document.createElement("button");
+            buttonInput.className = "btn btn-info";
+            buttonInput.innerText = "Add";
+            divInputGroup.appendChild(buttonInput);
 
-        })
+            buttonInput.addEventListener("click", function (ev) {
+                if (input2.value.length < 6) {
+                    alert("Długość zadania musi być większa niż 5 literek")
+                } else {
+                    apiCreateOperationForTask(taskId, input2.value).then(function (response) {
+                        renderOperation(ul, status, response.data.id, response.data.description, response.data.timeSpent);
+                    })
+                }
+                input2.value = null;
+                ev.preventDefault();
+
+            })
+        }
 
 
     }
@@ -149,27 +165,34 @@ function apiListTasks() {
         li.appendChild(descriptionDiv);
 
         const time = document.createElement('span');
-        time.className = 'badge badge-success badge-pill ml-2';
+        time.className = 'badge badge-success badge-pill ml-2 js-task-open-only';
         time.innerText = timerender(timeSpent);
-        descriptionDiv.appendChild(time);
 
         const buttonsDiv=document.createElement("div");
+        buttonsDiv.className="js-task-open-only";
         li.appendChild(buttonsDiv);
 
         const button15m=document.createElement("button");
         button15m.className="btn btn-outline-success btn-sm mr-2";
         button15m.innerText="+15m";
-        buttonsDiv.appendChild(button15m);
+
 
         const button1h=document.createElement("button");
         button1h.className="btn btn-outline-success btn-sm mr-2";
         button1h.innerText="+1h";
-        buttonsDiv.appendChild(button1h);
+
 
         const buttonDel=document.createElement("button")
         buttonDel.className="btn btn-outline-danger btn-sm";
         buttonDel.innerText="Delete";
-        buttonsDiv.appendChild(buttonDel);
+
+
+        if (status===`open`){
+            buttonsDiv.appendChild(button15m);
+            buttonsDiv.appendChild(button1h);
+            buttonsDiv.appendChild(buttonDel);
+            descriptionDiv.appendChild(time);
+        }
 
         button15m.addEventListener("click", function (){
             const time15min=timeSpent+15;
@@ -302,6 +325,27 @@ document.querySelector("form").addEventListener("submit", function (ev){
                 headers: {
                     'Authorization': apikey,
                 }
+            }
+        ).then(
+            function(resp) {
+                if(!resp.ok) {
+                    alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+                }
+                return resp.json();
+            }
+        )
+    }
+
+    function apiUpdateTask(taskId, title, description, status) {
+        return fetch(
+            apihost + '/api/tasks/' + taskId,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': apikey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title: title, description: description, status: 'closed' })
             }
         ).then(
             function(resp) {
