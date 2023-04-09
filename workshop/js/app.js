@@ -73,13 +73,11 @@ function apiListTasks() {
         const ul=document.createElement("ul");
         ul.className="list-group list-group-flush";
         section.appendChild(ul);
-
         apiListOperationsForTask(taskId).then(
-
             function (response){
                 response.data.forEach(
                     function (operation){
-                        renderOperation(ul, operation.id, status, operation.description, operation.timeSpent)
+                        renderOperation(ul, status, operation.id, operation.description, operation.timeSpent)
                     }
                 )
             }
@@ -113,10 +111,12 @@ function apiListTasks() {
                 alert("Długość zadania musi być większa niż 5 literek")
             } else {
                 apiCreateOperationForTask(taskId, input2.value).then(function (response) {
-                    renderOperation(ul, response.data.id, status, response.data.description, response.data.timeSpent);
+                    renderOperation(ul, status, response.data.id, response.data.description, response.data.timeSpent);
                 })
             }
+            input2.value=null;
             ev.preventDefault();
+
         })
 
 
@@ -171,6 +171,22 @@ function apiListTasks() {
         buttonDel.innerText="Delete";
         buttonsDiv.appendChild(buttonDel);
 
+        button15m.addEventListener("click", function (){
+            const time15min=timeSpent+15;
+            apiUpdateOperation(operationId,operationDescription,time15min).then(function (operation){
+                timeSpent=operation.data.timeSpent;
+                time.innerText=timerender(operation.data.timeSpent);
+            })
+        })
+
+        button1h.addEventListener("click", function (){
+            const time60min=timeSpent+60;
+            apiUpdateOperation(operationId,operationDescription,time60min).then(function (operation){
+                timeSpent=operation.data.timeSpent;
+                time.innerText=timerender(operation.data.timeSpent);
+            })
+        })
+
     }
 
     apiListTasks().then(function (response){
@@ -201,16 +217,15 @@ function apiCreateTask(title, description) {
 }
 
 document.querySelector("form").addEventListener("submit", function (ev){
-    ev.preventDefault();
+
     const taskTitle=ev.currentTarget.elements.title.value;
     const taskDescription=ev.currentTarget.elements.description.value;
     apiCreateTask(taskTitle,taskDescription).then(function (response){
         renderTask(response.data.id, response.data.title, response.data.description, response.data.status);
     })
-
+    ev.currentTarget.elements.title.value=null;
+    ev.currentTarget.elements.description.value=null;    ev.preventDefault();
 })
-
-
 
     function apiDeleteTask(taskId){
         return fetch(
@@ -251,5 +266,28 @@ document.querySelector("form").addEventListener("submit", function (ev){
             }
         )
     }
+
+    function apiUpdateOperation(operationId, description, timeSpent){
+        return fetch(
+            apihost + '/api/operations/' + operationId,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': apikey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({description: description, timeSpent: timeSpent})
+            }
+        ).then(
+            function(resp) {
+                if(!resp.ok) {
+                    alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+                }
+                return resp.json();
+            }
+        )
+    }
+
+
 
 })
