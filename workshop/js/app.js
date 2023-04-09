@@ -74,16 +74,16 @@ function apiListTasks() {
         ul.className="list-group list-group-flush";
         section.appendChild(ul);
 
-        // apiListOperationsForTask(taskId).then(
-        //
-        //     // function (response){
-        //     //     response.data.forEach(
-        //     //         function (operation){
-        //     //             renderOperation(ul, operation.id, status, operation.description, operation.timeSpent)
-        //     //         }
-        //     //     )
-        //     // }
-        // )
+        apiListOperationsForTask(taskId).then(
+
+            function (response){
+                response.data.forEach(
+                    function (operation){
+                        renderOperation(ul, operation.id, status, operation.description, operation.timeSpent)
+                    }
+                )
+            }
+        )
 
 
         const divBody=document.createElement("div");
@@ -107,6 +107,17 @@ function apiListTasks() {
         buttonInput.className="btn btn-info";
         buttonInput.innerText="Add";
         divInputGroup.appendChild(buttonInput);
+
+        buttonInput.addEventListener("click", function (ev){
+            if (input2.value.length < 6) {
+                alert("Długość zadania musi być większa niż 5 literek")
+            } else {
+                apiCreateOperationForTask(taskId, input2.value).then(function (response) {
+                    renderOperation(ul, response.data.id, status, response.data.description, response.data.timeSpent);
+                })
+            }
+            ev.preventDefault();
+        })
 
 
     }
@@ -160,11 +171,6 @@ function apiListTasks() {
         buttonDel.innerText="Delete";
         buttonsDiv.appendChild(buttonDel);
 
-
-        if(status === "open") {
-//
-        }
-        // ...
     }
 
     apiListTasks().then(function (response){
@@ -204,6 +210,8 @@ document.querySelector("form").addEventListener("submit", function (ev){
 
 })
 
+
+
     function apiDeleteTask(taskId){
         return fetch(
             apihost + '/api/tasks/' + taskId,
@@ -217,6 +225,27 @@ document.querySelector("form").addEventListener("submit", function (ev){
             function(resp) {
                 if(!resp.ok) {
                     alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+                }
+                return resp.json();
+            }
+        )
+    }
+
+    function apiCreateOperationForTask(taskId, description){
+        return fetch(
+            apihost + '/api/tasks/' + taskId + '/operations',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': apikey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({description: description, timeSpent: 0})
+            }
+        ).then(
+            function(resp) {
+                if(!resp.ok) {
+                    alert('Wystąpił błąd w dodawaniu operacji! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
                 }
                 return resp.json();
             }
